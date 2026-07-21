@@ -1,81 +1,98 @@
+# Dortmund Handling Services GmbH — Internal Appointment Scheduler
 
-# Open Source Doctor Appointment Booking System using PHP, MySQL
-![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(1).png)
+An internal PHP/MySQL scheduling tool for ground handling staff. The manager publishes her available meeting times; employees request an appointment with a brief description of the topic, and the manager approves or declines each request.
 
-[Edoc](https://github.com/HashenUdara/edoc-doctor-appointment-system/) is a Simple web project that is made for e-channeling Using PHP,HTML & CSS.
-This initiative facilitates online appointment requests for clients or patients of medical establishments, including clinics and hospitals. This project can also help doctors to manage their appointment with their patients. This doctor's appointment system will organize the schedules of each patient's appointment, which will be submitted as a request to the doctor they have selected. The system comprises three key roles: administrator, doctor, and patient. The system admin will populate the list of the doctors with their specialties and along with the doctor's details and system credentials. The patients can browse the doctor's appointment system website to find a doctor that has the specialty of their needs. Patients can review the doctor's weekly schedule, enabling them to select a suitable day and time for their appointment. Subsequently, they can submit their appointment request. After that, the doctors can view all their appointments and the appointment request of the patients for their availability.
-
+This is an internal-only tool with two roles: **Manager** and **Employee**. There is no public/passenger-facing booking.
 
 ## Features
 
-### Admin
-  
-- Admin can add doctors, edit doctors, delete doctors    
-- Schedule new doctors sessions, remove sessions   
-- View patients details    
-- View booking of patients    
-    
-    
- 
- 
-### Doctors
+### Manager
+- Publish, edit, and delete available meeting times (with a duration per slot)
+- See incoming appointment requests with the employee's name and topic
+- Approve or decline requests; cancel approved appointments (the employee is notified on their dashboard)
+- Add approved appointments to Google Calendar or download them as `.ics`
+- Create, edit, and delete employee accounts
 
-- View their Appointment
-- View their scheduled sessions
-- View details of patients
-- Delete account    
-- Eedit account settings
-    
+### Employee
+- Browse the manager's open slots in a week calendar and request an appointment with a topic
+- Withdraw pending requests; cancel approved appointments
+- See a notice when a request was declined or an appointment was cancelled
+- Add approved appointments to Google Calendar or download them as `.ics` (works with Outlook/Apple Calendar)
+- Edit their own profile and password
 
-    
-### Patiens(Clients)
-  
-  - Make appointment online
-  - Create accounts themslves
-  - View their old booking
-  - Delete account
-  - Edit account settings    
+### Appointment lifecycle
 
-    
-| Admin Dashboard | Doctor Dashboard | Patient Dashboard |
-| -------| -------| -------|
-| Email: `admin@edoc.com` | Email: `doctor@edoc.com` |   Email: `patient@edoc.com` | 
-| Password: `123` |  Password: `123` |  Password: `123` |
-| ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(3).png)| ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(9).png) |    ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(6).png)  |
+`open → pending` (employee requests with a topic) `→ approved` (manager approves) — or back to `open` when the manager declines, the employee withdraws, or either side cancels. The first request locks a slot; declined slots become available again.
 
- 
-  
------------------------------------------------
+## Getting started (Docker)
 
+1. Install Docker Desktop.
+2. From the project root, run:
+   ```
+   docker compose up -d --build
+   ```
+3. The app is available at http://localhost:8080. The database schema and seed data (`schema.sql`) are imported automatically on first start.
 
-# GET STARTED
+### Seeded accounts
 
-1. Open your XAMPP Control Panel and start Apache and MySQL.
-2. Extract the downloaded source code zip file.
-3. Copy the extracted source code folder and paste it into the XAMPP's "htdocs" directory.
-4. Browse the PHPMyAdmin in a browser. i.e. http://localhost/phpmyadmin
-5. Create a new database naming `edoc`.
-6. Import the provided SQL file. The file is known as DATABASE edoc.sql located inside the source code root folder.
-7. Browse the Doctor's Appointment Systsem in a browser. i.e. http://localhost/edoc-echanneling-main/.
+All seeded accounts use the password `password123`.
 
+| Role | Email |
+| --- | --- |
+| Manager | `manager@dortmund-handling.de` |
+| Employee | `anna.schmidt@dortmund-handling.de` |
+| Employee | `lukas.becker@dortmund-handling.de` |
+| Employee | `mia.hoffmann@dortmund-handling.de` |
 
-## Screenshots
+Manager accounts are seeded via `schema.sql`; there is no self-registration. New employee accounts are created by a manager from the Employees page.
 
-| ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(1).png) | ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(2).png)| ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(3).png)| ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(4).png)|
-|--------------| --------------|   --------------|  --------------|    
-|  ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(5).png)| ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(6).png)| ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(7).png)| ![](https://github.com/hshnudr/edoc-echanneling/blob/main/Screenshots/Screenshot%20(8).png)|
+## Stack
 
-# The Project was developed using the following:
+PHP 8.2 (Apache), MariaDB 10.5, Docker Compose. The app reads its database
+config from environment variables (`DB_HOST`, `DB_PORT`, `DB_USER`,
+`DB_PASSWORD`, `DB_NAME`), falling back to Railway's native `MYSQL*` variables
+and finally to the local docker-compose defaults.
 
-Apache Version: 	`2.4.39`
+## Deploy to Railway
 
-PHP Version: 		`7.3.5`
+1. Push the repo to GitHub.
+2. On [railway.com](https://railway.com): **New Project → Deploy from GitHub repo** and pick this repo. Railway detects the `Dockerfile` and builds it.
+3. In the same project, **Create → Database → MySQL**.
+4. On the web service, open **Variables** and add (the `${{...}}` references resolve over Railway's private network, so the DB never needs public exposure):
+   ```
+   DB_HOST=${{MySQL.MYSQLHOST}}
+   DB_PORT=${{MySQL.MYSQLPORT}}
+   DB_USER=${{MySQL.MYSQLUSER}}
+   DB_PASSWORD=${{MySQL.MYSQLPASSWORD}}
+   DB_NAME=${{MySQL.MYSQLDATABASE}}
+   ```
+5. Import the schema once, using the [Railway CLI](https://docs.railway.com/guides/cli):
+   ```
+   railway connect MySQL
+   ```
+   then, inside the MySQL shell: `source schema.sql;` (run the command from the project root). The MySQL plugin's default database is `railway`; `schema.sql` contains no `CREATE DATABASE`/`USE`, so it imports straight into it and `DB_NAME` already points there.
+6. Web service → **Settings → Networking → Generate Domain** (target port 80). Your app is now live over HTTPS.
+7. **Immediately change the seeded passwords.** Generate a new hash:
+   ```
+   php -r "echo password_hash('YOUR-NEW-PASSWORD', PASSWORD_DEFAULT), PHP_EOL;"
+   ```
+   then via `railway connect MySQL`:
+   ```sql
+   UPDATE manager SET password_hash='<hash>' WHERE email='manager@dortmund-handling.de';
+   ```
+   Delete the seeded demo employees (or update their hashes the same way):
+   ```sql
+   DELETE FROM slot WHERE booked_by IS NOT NULL;
+   DELETE FROM employee;
+   DELETE FROM login_directory WHERE role='employee';
+   ```
+   Then create real employee accounts from the manager's **Employees** page.
 
-Server Software: 	`Apache/2.4.39 (Win64) PHP/7.3.5`
+## Image credits
 
-MySQL Version: 		`5.7.26`
+`img/hero-apron.jpg` — [Airport Apron at CDG](https://commons.wikimedia.org/wiki/File:Airport_Apron_at_CDG.jpg) by DiscoA340, CC BY-SA 4.0.
+`img/hero-groundhandling.jpg` — [Airport baggage vehicle returns to its lost luggage](https://commons.wikimedia.org/wiki/File:Airport_baggage_vehicle_returns_to_its_lost_luggage.jpg) by Anidaat, CC BY-SA 4.0.
 
-Demo video: https://youtu.be/mAWHYAHmit4
+## Origin
 
-
-
+This project began as a fork of [edoc-doctor-appointment-system](https://github.com/HashenUdara/edoc-doctor-appointment-system), a doctor/patient booking system, repurposed for internal ground handling scheduling.

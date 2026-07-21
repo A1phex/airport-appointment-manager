@@ -1,6 +1,6 @@
 <?php 
 
-	session_start();
+	require_once __DIR__ . '/includes/session.php';
 
 	$_SESSION = array();
 
@@ -11,6 +11,7 @@
 	session_destroy();
 
 	// redirecting the user to the login page
-	header('Location: login.php?action=logout');
+	header('Location: login.php');
+	exit;
 
  ?>

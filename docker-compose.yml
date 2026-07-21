@@ -1,12 +1,16 @@
-version: '3.8'
-
 services:
   web:
     build: .
     ports:
-      - "8080:80"  # L'application sera accessible sur http://localhost:8080
+      - "8080:80"  # app available at http://localhost:8080
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: dhs_scheduler
     volumes:
-      - .:/var/www/html
+      - .:/var/www/html  # dev bind mount; production images use the COPY from the Dockerfile
     depends_on:
       - db
 
@@ -15,14 +19,14 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: edoc
+      MYSQL_DATABASE: dhs_scheduler
       MYSQL_USER: user
       MYSQL_PASSWORD: password
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"  # localhost only; not reachable from the LAN
     volumes:
       - db_data:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
 volumes:
   db_data:
-

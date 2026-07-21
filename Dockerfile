@@ -1,18 +1,15 @@
-# Utiliser PHP 7.3 avec Apache
-FROM php:7.3-apache
+FROM php:8.2-apache
 
-# Installer les extensions PHP nécessaires
-RUN docker-php-ext-install mysqli pdo pdo_mysql
+RUN docker-php-ext-install mysqli
 
-# Copier tout le projet dans le conteneur
+# Session/cookie hardening + hide the PHP version header
+RUN printf 'session.cookie_httponly=1\nsession.use_strict_mode=1\nexpose_php=0\ndisplay_errors=Off\nlog_errors=On\n' \
+    > /usr/local/etc/php/conf.d/hardening.ini
+
 COPY . /var/www/html/
 
-# Modifier les permissions pour Apache
 RUN chown -R www-data:www-data /var/www/html
 
-# Exposer le port 80 pour Apache
 EXPOSE 80
 
-# Lancer Apache
 CMD ["apache2-foreground"]
-

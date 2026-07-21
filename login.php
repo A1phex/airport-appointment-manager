@@ -1,189 +1,102 @@
+<?php
+
+require_once __DIR__ . '/includes/session.php';
+
+$_SESSION = array();
+
+include("connection.php");
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+    $email = $_POST['useremail'] ?? '';
+    $password = $_POST['userpassword'] ?? '';
+
+    $stmt = $database->prepare("SELECT role FROM login_directory WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows == 1) {
+        $role = $result->fetch_assoc()['role'];
+
+        if ($role == 'manager') {
+            $stmt = $database->prepare("SELECT id, name, password_hash FROM manager WHERE email = ?");
+        } else {
+            $stmt = $database->prepare("SELECT id, name, password_hash FROM employee WHERE email = ?");
+        }
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $account = $stmt->get_result()->fetch_assoc();
+
+        if ($account && password_verify($password, $account['password_hash'])) {
+
+            session_regenerate_id(true);
+
+            $_SESSION['user_id'] = $account['id'];
+            $_SESSION['name'] = $account['name'];
+            $_SESSION['role'] = $role;
+
+            if ($role == 'manager') {
+                header('location: manager/index.php');
+            } else {
+                header('location: employee/index.php');
+            }
+            exit;
+
+        } else {
+            $error = "Wrong credentials: invalid email or password.";
+        }
+    } else {
+        $error = "We couldn't find an account for this email.";
+    }
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/animations.css">  
-    <link rel="stylesheet" href="css/main.css">  
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/login.css">
-        
-    <title>Login</title>
 
-    
-    
+    <title>Login - Dortmund Handling Services GmbH</title>
 </head>
-<body>
-    <?php
+<body class="login-page">
 
-    //learn from w3schools.com
-    //Unset all the server side variables
-
-    session_start();
-
-    $_SESSION["user"]="";
-    $_SESSION["usertype"]="";
-    
-    // Set the new timezone
-    date_default_timezone_set('Asia/Kolkata');
-    $date = date('Y-m-d');
-
-    $_SESSION["date"]=$date;
-    
-
-    //import database
-    include("connection.php");
-
-    
-
-
-
-    if($_POST){
-
-        $email=$_POST['useremail'];
-        $password=$_POST['userpassword'];
-        
-        $error='<label for="promter" class="form-label"></label>';
-
-        $result= $database->query("select * from webuser where email='$email'");
-        if($result->num_rows==1){
-            $utype=$result->fetch_assoc()['usertype'];
-            if ($utype=='p'){
-                //TODO
-                $checker = $database->query("select * from patient where pemail='$email' and ppassword='$password'");
-                if ($checker->num_rows==1){
-
-
-                    //   Patient dashbord
-                    $_SESSION['user']=$email;
-                    $_SESSION['usertype']='p';
-                    
-                    header('location: patient/index.php');
-
-                }else{
-                    $error='<label for="promter" class="form-label" style="color:rgb(255, 62, 62);text-align:center;">Wrong credentials: Invalid email or password</label>';
-                }
-
-            }elseif($utype=='a'){
-                //TODO
-                $checker = $database->query("select * from admin where aemail='$email' and apassword='$password'");
-                if ($checker->num_rows==1){
-
-
-                    //   Admin dashbord
-                    $_SESSION['user']=$email;
-                    $_SESSION['usertype']='a';
-                    
-                    header('location: admin/index.php');
-
-                }else{
-                    $error='<label for="promter" class="form-label" style="color:rgb(255, 62, 62);text-align:center;">Wrong credentials: Invalid email or password</label>';
-                }
-
-
-            }elseif($utype=='d'){
-                //TODO
-                $checker = $database->query("select * from doctor where docemail='$email' and docpassword='$password'");
-                if ($checker->num_rows==1){
-
-
-                    //   doctor dashbord
-                    $_SESSION['user']=$email;
-                    $_SESSION['usertype']='d';
-                    header('location: doctor/index.php');
-
-                }else{
-                    $error='<label for="promter" class="form-label" style="color:rgb(255, 62, 62);text-align:center;">Wrong credentials: Invalid email or password</label>';
-                }
-
-            }
-            
-        }else{
-            $error='<label for="promter" class="form-label" style="color:rgb(255, 62, 62);text-align:center;">We cant found any acount for this email.</label>';
-        }
-
-
-
-
-
-
-        
-    }else{
-        $error='<label for="promter" class="form-label">&nbsp;</label>';
-    }
-
-    ?>
-
-
-
-
-
-    <center>
-    <div class="container">
-        <table border="0" style="margin: 0;padding: 0;width: 60%;">
-            <tr>
-                <td>
-                    <p class="header-text">Welcome Back!</p>
-                </td>
-            </tr>
-        <div class="form-body">
-            <tr>
-                <td>
-                    <p class="sub-text">Login with your details to continue</p>
-                </td>
-            </tr>
-            <tr>
-                <form action="" method="POST" >
-                <td class="label-td">
-                    <label for="useremail" class="form-label">Email: </label>
-                </td>
-            </tr>
-            <tr>
-                <td class="label-td">
-                    <input type="email" name="useremail" class="input-text" placeholder="Email Address" required>
-                </td>
-            </tr>
-            <tr>
-                <td class="label-td">
-                    <label for="userpassword" class="form-label">Password: </label>
-                </td>
-            </tr>
-
-            <tr>
-                <td class="label-td">
-                    <input type="Password" name="userpassword" class="input-text" placeholder="Password" required>
-                </td>
-            </tr>
-
-
-            <tr>
-                <td><br>
-                <?php echo $error ?>
-                </td>
-            </tr>
-
-            <tr>
-                <td>
-                    <input type="submit" value="Login" class="login-btn btn-primary btn">
-                </td>
-            </tr>
+    <div class="login-split">
+        <div class="login-visual">
+            <div class="login-visual-text">
+                <p class="login-brand">Dortmund Handling Services GmbH</p>
+                <p class="login-brand-sub">Internal Appointment Scheduler</p>
+            </div>
         </div>
-            <tr>
-                <td>
-                    <br>
-                    <label for="" class="sub-text" style="font-weight: 280;">Don't have an account&#63; </label>
-                    <a href="signup.php" class="hover-link1 non-style-link">Sign Up</a>
-                    <br><br><br>
-                </td>
-            </tr>
-                        
-                        
-    
-                        
-                    </form>
-        </table>
 
+        <div class="login-panel">
+            <form action="" method="POST" class="login-card">
+                <h1>Welcome back</h1>
+                <p class="login-hint">Sign in with your staff account.</p>
+
+                <label for="useremail" class="form-label">Email</label>
+                <input type="email" id="useremail" name="useremail" class="input-text" placeholder="Email Address" required>
+
+                <label for="userpassword" class="form-label">Password</label>
+                <input type="password" id="userpassword" name="userpassword" class="input-text" placeholder="Password" required>
+
+                <?php if ($error): ?>
+                    <p class="form-error"><?php echo htmlspecialchars($error); ?></p>
+                <?php endif; ?>
+
+                <input type="submit" value="Login" class="btn btn-primary login-submit">
+
+                <a href="index.html" class="login-back">&larr; Back to home</a>
+            </form>
+        </div>
     </div>
-</center>
+
 </body>
 </html>

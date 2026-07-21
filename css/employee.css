@@ -1,0 +1,9 @@
+/* Employee role accents */
+
+.page-header {
+    background-image: linear-gradient(rgba(10, 27, 44, 0.65), rgba(10, 27, 44, 0.65)), url(../img/hero-groundhandling.jpg);
+}
+
+.sidebar-brand span {
+    color: #8fd0a8;
+}
