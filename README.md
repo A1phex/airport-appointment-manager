@@ -1,14 +1,14 @@
 # Dortmund Handling Services GmbH — Internal Appointment Scheduler
 
-An internal PHP/MySQL scheduling tool for ground handling staff. The manager publishes her available meeting times; employees request an appointment with a brief description of the topic, and the manager approves or declines each request.
+An internal PHP/MySQL scheduling tool for ground handling staff. The manager publishes available meeting times; employees request an appointment with a brief description of the topic, and the manager (or an admin) approves or declines each request.
 
-This is an internal-only tool with three roles: **Admin**, **Manager**, and **Employee**. There is no public/passenger-facing booking.
+This is an internal-only tool with three roles: **Admin**, **Manager**, and **Employee**. There is no public or passenger-facing booking.
 
 ## Features
 
 ### Admin
-- Everything appointment-related across all managers: create/edit available times (choosing which manager they belong to), approve/decline requests, cancel appointments, delete slots
-- Full employee account management (add, edit, delete)
+- Full oversight of appointments across all managers: create and edit available times, approve or decline requests, cancel appointments, delete slots
+- Employee account management (add, edit, delete)
 - Own profile and password settings
 
 ### Manager
@@ -16,83 +16,48 @@ This is an internal-only tool with three roles: **Admin**, **Manager**, and **Em
 - See incoming appointment requests with the employee's name and topic
 - Approve or decline requests; cancel approved appointments (the employee is notified on their dashboard)
 - Add approved appointments to Google Calendar or download them as `.ics`
-- Create, edit, and delete employee accounts
+- Manage employee accounts
+- Own profile and password settings
 
 ### Employee
-- Browse the manager's open slots in a week calendar and request an appointment with a topic
+- Browse open slots in a week calendar and request an appointment with a topic
 - Withdraw pending requests; cancel approved appointments
-- See a notice when a request was declined or an appointment was cancelled
-- Add approved appointments to Google Calendar or download them as `.ics` (works with Outlook/Apple Calendar)
+- See a notice when a request is declined or an appointment is cancelled
+- Add approved appointments to Google Calendar or download them as `.ics` (works with Outlook / Apple Calendar / Google Calendar)
 - Edit their own profile and password
 
 ### Appointment lifecycle
 
-`open → pending` (employee requests with a topic) `→ approved` (manager approves) — or back to `open` when the manager declines, the employee withdraws, or either side cancels. The first request locks a slot; declined slots become available again.
+`open → pending` (employee requests with a topic) `→ approved` (manager or admin approves) — or back to `open` when the request is declined, the employee withdraws, or either side cancels. The first request locks a slot; declined slots become available again.
 
-## Getting started (Docker)
+## Views
+
+Both the manager/admin and employee dashboards default to a **week calendar** with prev/next navigation, and offer a **list** toggle for a flat, sortable table. The interface is responsive and works on mobile.
+
+## Stack
+
+- **PHP 8.2** (Apache) — server-rendered, no JavaScript framework
+- **MariaDB / MySQL** — accessed exclusively through prepared statements
+- **Docker Compose** for local development
+
+Database configuration is read from environment variables (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`), with sensible defaults for local development.
+
+### Security notes
+
+- Passwords are stored as bcrypt hashes (`password_hash`); there is no self-registration.
+- Sessions use `HttpOnly` / `SameSite` cookies, marked `Secure` automatically when served over HTTPS, and the session ID is regenerated on login.
+- All user input is validated and escaped; role checks guard every page.
+
+## Running locally
 
 1. Install Docker Desktop.
 2. From the project root, run:
    ```
    docker compose up -d --build
    ```
-3. The app is available at http://localhost:8080. The database schema and seed data (`schema.sql`) are imported automatically on first start.
+3. The app is available at http://localhost:8080. The database schema is imported automatically on first start from `schema.sql`.
 
-### Seeded accounts
-
-All seeded accounts use the password `password123`.
-
-| Role | Email |
-| --- | --- |
-| Admin | `admin@dortmund-handling.de` |
-| Manager | `manager@dortmund-handling.de` |
-| Employee | `anna.schmidt@dortmund-handling.de` |
-| Employee | `lukas.becker@dortmund-handling.de` |
-| Employee | `mia.hoffmann@dortmund-handling.de` |
-
-Manager accounts are seeded via `schema.sql`; there is no self-registration. New employee accounts are created by a manager from the Employees page.
-
-## Stack
-
-PHP 8.2 (Apache), MariaDB 10.5, Docker Compose. The app reads its database
-config from environment variables (`DB_HOST`, `DB_PORT`, `DB_USER`,
-`DB_PASSWORD`, `DB_NAME`), falling back to Railway's native `MYSQL*` variables
-and finally to the local docker-compose defaults.
-
-## Deploy to Railway
-
-1. Push the repo to GitHub.
-2. On [railway.com](https://railway.com): **New Project → Deploy from GitHub repo** and pick this repo. Railway detects the `Dockerfile` and builds it.
-3. In the same project, **Create → Database → MySQL**.
-4. On the web service, open **Variables** and add (the `${{...}}` references resolve over Railway's private network, so the DB never needs public exposure):
-   ```
-   DB_HOST=${{MySQL.MYSQLHOST}}
-   DB_PORT=${{MySQL.MYSQLPORT}}
-   DB_USER=${{MySQL.MYSQLUSER}}
-   DB_PASSWORD=${{MySQL.MYSQLPASSWORD}}
-   DB_NAME=${{MySQL.MYSQLDATABASE}}
-   ```
-5. Import the schema once, using the [Railway CLI](https://docs.railway.com/guides/cli):
-   ```
-   railway connect MySQL
-   ```
-   then, inside the MySQL shell: `source schema.sql;` (run the command from the project root). The MySQL plugin's default database is `railway`; `schema.sql` contains no `CREATE DATABASE`/`USE`, so it imports straight into it and `DB_NAME` already points there.
-6. Web service → **Settings → Networking → Generate Domain** (target port 80). Your app is now live over HTTPS.
-7. **Immediately change the seeded passwords.** Generate a new hash:
-   ```
-   php -r "echo password_hash('YOUR-NEW-PASSWORD', PASSWORD_DEFAULT), PHP_EOL;"
-   ```
-   then via `railway connect MySQL`:
-   ```sql
-   UPDATE manager SET password_hash='<hash>' WHERE email='manager@dortmund-handling.de';
-   ```
-   Delete the seeded demo employees (or update their hashes the same way):
-   ```sql
-   DELETE FROM slot WHERE booked_by IS NOT NULL;
-   DELETE FROM employee;
-   DELETE FROM login_directory WHERE role='employee';
-   ```
-   Then create real employee accounts from the manager's **Employees** page.
+For local development the schema seeds a small set of demo accounts (one per role) so you can log in immediately. These are for local use only — see `schema.sql` for details. There is no self-registration; employee accounts are created by a manager or admin from the **Employees** page.
 
 ## Image credits
 
