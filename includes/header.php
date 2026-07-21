@@ -39,6 +39,7 @@ $cssFile = $role == 'manager' ? 'manager.css' : 'employee.css';
                 <?php if ($role == 'manager'): ?>
                     <a href="index.php" class="nav-link<?php echo $activeNav == 'slots' ? ' nav-link-active' : ''; ?>">Slots</a>
                     <a href="employees.php" class="nav-link<?php echo $activeNav == 'employees' ? ' nav-link-active' : ''; ?>">Employees</a>
+                    <a href="settings.php" class="nav-link<?php echo $activeNav == 'settings' ? ' nav-link-active' : ''; ?>">Settings</a>
                 <?php else: ?>
                     <a href="index.php" class="nav-link<?php echo $activeNav == 'dashboard' ? ' nav-link-active' : ''; ?>">Dashboard</a>
                     <a href="settings.php" class="nav-link<?php echo $activeNav == 'settings' ? ' nav-link-active' : ''; ?>">Settings</a>
