@@ -2,11 +2,16 @@ FROM php:8.2-apache
 
 RUN docker-php-ext-install mysqli
 
-# The base image occasionally ships with more than one MPM module enabled,
-# which crashes Apache on start ("More than one MPM loaded"). Disable each
-# one individually (ignoring failures if it's already off) so we always end
-# up with exactly one MPM active, regardless of the base image's defaults.
-RUN for m in mpm_event mpm_worker mpm_prefork; do a2dismod "$m" >/dev/null 2>&1 || true; done \
+# Guarantee exactly one MPM (prefork) is loaded. Disabling alone is not
+# enough: some runtimes mishandle layer whiteouts, resurrecting the
+# mpm_event/mpm_worker symlinks that a2dismod deleted ("More than one MPM
+# loaded" crash-loop). Truncating the module files in mods-available makes
+# any resurrected symlink load nothing, without relying on deletions.
+RUN for m in mpm_event mpm_worker; do \
+      a2dismod "$m" >/dev/null 2>&1 || true; \
+      : > "/etc/apache2/mods-available/$m.load"; \
+      : > "/etc/apache2/mods-available/$m.conf"; \
+    done \
  && a2enmod mpm_prefork
 
 # Session/cookie hardening + hide the PHP version header
