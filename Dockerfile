@@ -3,8 +3,11 @@ FROM php:8.2-apache
 RUN docker-php-ext-install mysqli
 
 # The base image occasionally ships with more than one MPM module enabled,
-# which crashes Apache on start ("More than one MPM loaded"). Force prefork.
-RUN a2dismod mpm_event mpm_worker >/dev/null 2>&1; a2enmod mpm_prefork
+# which crashes Apache on start ("More than one MPM loaded"). Disable each
+# one individually (ignoring failures if it's already off) so we always end
+# up with exactly one MPM active, regardless of the base image's defaults.
+RUN for m in mpm_event mpm_worker mpm_prefork; do a2dismod "$m" >/dev/null 2>&1 || true; done \
+ && a2enmod mpm_prefork
 
 # Session/cookie hardening + hide the PHP version header
 RUN printf 'session.cookie_httponly=1\nsession.use_strict_mode=1\nexpose_php=0\ndisplay_errors=Off\nlog_errors=On\n' \
