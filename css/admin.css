@@ -1,0 +1,9 @@
+/* Admin role accents */
+
+.page-header {
+    background-image: linear-gradient(rgba(30, 15, 45, 0.7), rgba(30, 15, 45, 0.7)), url(../img/hero-apron.jpg);
+}
+
+.sidebar-brand span {
+    color: #c9a6f0;
+}

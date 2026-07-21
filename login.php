@@ -21,7 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($result->num_rows == 1) {
         $role = $result->fetch_assoc()['role'];
 
-        if ($role == 'manager') {
+        if ($role == 'admin') {
+            $stmt = $database->prepare("SELECT id, name, password_hash FROM admin WHERE email = ?");
+        } elseif ($role == 'manager') {
             $stmt = $database->prepare("SELECT id, name, password_hash FROM manager WHERE email = ?");
         } else {
             $stmt = $database->prepare("SELECT id, name, password_hash FROM employee WHERE email = ?");
@@ -38,7 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['name'] = $account['name'];
             $_SESSION['role'] = $role;
 
-            if ($role == 'manager') {
+            if ($role == 'admin') {
+                header('location: admin/index.php');
+            } elseif ($role == 'manager') {
                 header('location: manager/index.php');
             } else {
                 header('location: employee/index.php');

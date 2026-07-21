@@ -2,7 +2,7 @@
 // Expects $pageTitle and $activeNav to be set by the caller, which must
 // already have called session_start() and enforced the role check.
 $role = $_SESSION['role'];
-$cssFile = $role == 'manager' ? 'manager.css' : 'employee.css';
+$cssFile = $role == 'admin' ? 'admin.css' : ($role == 'manager' ? 'manager.css' : 'employee.css');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,11 +32,15 @@ $cssFile = $role == 'manager' ? 'manager.css' : 'employee.css';
                 <img src="../img/user.png" alt="">
                 <div>
                     <p class="profile-title"><?php echo htmlspecialchars($_SESSION['name'] ?? ''); ?></p>
-                    <p class="profile-subtitle"><?php echo $role == 'manager' ? 'Manager' : 'Employee'; ?></p>
+                    <p class="profile-subtitle"><?php echo $role == 'admin' ? 'Administrator' : ($role == 'manager' ? 'Manager' : 'Employee'); ?></p>
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <?php if ($role == 'manager'): ?>
+                <?php if ($role == 'admin'): ?>
+                    <a href="index.php" class="nav-link<?php echo $activeNav == 'appointments' ? ' nav-link-active' : ''; ?>">Appointments</a>
+                    <a href="employees.php" class="nav-link<?php echo $activeNav == 'employees' ? ' nav-link-active' : ''; ?>">Employees</a>
+                    <a href="settings.php" class="nav-link<?php echo $activeNav == 'settings' ? ' nav-link-active' : ''; ?>">Settings</a>
+                <?php elseif ($role == 'manager'): ?>
                     <a href="index.php" class="nav-link<?php echo $activeNav == 'slots' ? ' nav-link-active' : ''; ?>">Slots</a>
                     <a href="employees.php" class="nav-link<?php echo $activeNav == 'employees' ? ' nav-link-active' : ''; ?>">Employees</a>
                     <a href="settings.php" class="nav-link<?php echo $activeNav == 'settings' ? ' nav-link-active' : ''; ?>">Settings</a>

@@ -2,9 +2,14 @@
 
 An internal PHP/MySQL scheduling tool for ground handling staff. The manager publishes her available meeting times; employees request an appointment with a brief description of the topic, and the manager approves or declines each request.
 
-This is an internal-only tool with two roles: **Manager** and **Employee**. There is no public/passenger-facing booking.
+This is an internal-only tool with three roles: **Admin**, **Manager**, and **Employee**. There is no public/passenger-facing booking.
 
 ## Features
+
+### Admin
+- Everything appointment-related across all managers: create/edit available times (choosing which manager they belong to), approve/decline requests, cancel appointments, delete slots
+- Full employee account management (add, edit, delete)
+- Own profile and password settings
 
 ### Manager
 - Publish, edit, and delete available meeting times (with a duration per slot)
@@ -39,6 +44,7 @@ All seeded accounts use the password `password123`.
 
 | Role | Email |
 | --- | --- |
+| Admin | `admin@dortmund-handling.de` |
 | Manager | `manager@dortmund-handling.de` |
 | Employee | `anna.schmidt@dortmund-handling.de` |
 | Employee | `lukas.becker@dortmund-handling.de` |

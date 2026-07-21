@@ -6,6 +6,13 @@
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
+CREATE TABLE IF NOT EXISTS admin (
+  id            INT PRIMARY KEY AUTO_INCREMENT,
+  email         VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  name          VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS manager (
   id            INT PRIMARY KEY AUTO_INCREMENT,
   email         VARCHAR(255) UNIQUE NOT NULL,
@@ -58,10 +65,13 @@ CREATE TABLE IF NOT EXISTS request_notice (
 
 CREATE TABLE IF NOT EXISTS login_directory (
   email VARCHAR(255) PRIMARY KEY,
-  role  ENUM('manager','employee') NOT NULL
+  role  ENUM('manager','employee','admin') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Seed data. All seeded accounts use the password: password123
+
+INSERT INTO admin (email, password_hash, name) VALUES
+('admin@dortmund-handling.de', '$2y$10$PeOOsRiKhyzampmVfpNs/eRd4v3ZqMf3t.ozfYr1bVh1xGNN/v/36', 'System Admin');
 
 INSERT INTO manager (email, password_hash, name) VALUES
 ('manager@dortmund-handling.de', '$2y$10$PeOOsRiKhyzampmVfpNs/eRd4v3ZqMf3t.ozfYr1bVh1xGNN/v/36', 'Ops Manager');
@@ -72,6 +82,7 @@ INSERT INTO employee (email, password_hash, name, employee_number, phone) VALUES
 ('mia.hoffmann@dortmund-handling.de', '$2y$10$PeOOsRiKhyzampmVfpNs/eRd4v3ZqMf3t.ozfYr1bVh1xGNN/v/36', 'Mia Hoffmann', 'EMP-1003', '+49 231 555 0103');
 
 INSERT INTO login_directory (email, role) VALUES
+('admin@dortmund-handling.de', 'admin'),
 ('manager@dortmund-handling.de', 'manager'),
 ('anna.schmidt@dortmund-handling.de', 'employee'),
 ('lukas.becker@dortmund-handling.de', 'employee'),

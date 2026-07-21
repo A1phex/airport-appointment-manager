@@ -26,6 +26,7 @@ $slot = $stmt->get_result()->fetch_assoc();
 
 $allowed = $slot && (
     $_SESSION['role'] === 'manager'
+    || $_SESSION['role'] === 'admin'
     || ($_SESSION['role'] === 'employee' && (int)$slot['requested_by'] === (int)$_SESSION['user_id'])
 );
 
